@@ -1,10 +1,7 @@
 <template>
   <v-app>
-    <!-- <v-app-bar flat color="secondary" shift>
-      
-    </v-app-bar> -->
-    <router-view> </router-view>
-    <v-bottom-navigation color="primary" grow >
+    <router-view />
+    <v-bottom-navigation color="primary" grow>
     <v-btn to="/planning" exact>
       <span>Planning</span>
       <v-icon>fa-calendar-alt</v-icon>
