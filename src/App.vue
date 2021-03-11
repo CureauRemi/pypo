@@ -4,7 +4,7 @@
     <!-- APP HEADER -->
     <div class="header" app>
       <router-link :to="{name: 'Accueil'}"><img :src="require('./assets/logo-pypo.png')" alt="Logo" class="logo"/></router-link>
-      <h1 class="title">{{ $route.name }}</h1>
+      <h1 class="title" color="primary">{{ $route.name }}</h1>
     </div>
     <!-- APP CONTAINER ROUTER -->
     <v-main class="pa-4">
@@ -69,4 +69,5 @@ export default {
 
 body
   font-family: $main-font!important
+  max-width: 99%
 </style>
