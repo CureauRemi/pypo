@@ -12,6 +12,22 @@ const routes = [
   },
   {
     path: '/planning',name: 'Planning',  component: () => import('../views/Planning.vue')
+  },
+  {
+    path: '/login',name: 'Connexion',  component: () => import('../views/Login.vue')
+  },
+  {
+    path: '/signup',name: 'Inscription',  component: () => import('../views/Signin.vue')
+  },
+  // ADMIN PAGES
+  {
+    path: '/dashboard',name: 'TableauDeBordAdmin',  component: () => import('../views/Dashboard.vue')
+  },
+  {
+    path: '/patients',name: 'ListingPatients',  component: () => import('../views/ListingPatients.vue')
+  },
+  {
+    path: '/patients/:id',name: 'DetailPatient',  component: () => import('../views/DetailPatient.vue')
   }
 ]
 

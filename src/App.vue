@@ -5,6 +5,12 @@
     <div class="header" app>
       <router-link :to="{name: 'Accueil'}"><img :src="require('./assets/logo-pypo.png')" alt="Logo" class="logo"/></router-link>
       <h1 class="title" color="primary">{{ $route.name }}</h1>
+      <v-spacer></v-spacer>
+      <v-btn v-show="!isConnectPage" class="mr-4" color="primary"  x-large fab elevation="1" @click="handleConnect()">
+        <!-- IF CONNECTED -->
+        <v-icon v-show="isConnected">fas fa-sign-out-alt</v-icon>
+        <v-icon v-show="!isConnected">fas fa-sign-in-alt</v-icon>
+      </v-btn>
     </div>
     <!-- APP CONTAINER ROUTER -->
     <v-main class="pa-4">
@@ -42,9 +48,30 @@ export default {
   name: 'App',
   data () { 
     return {
+      isConnected: false,
+      isConnectPage: false,
     }
   },
   created() {
+    if(localStorage.getItem('CurrentUser') != null) {
+      this.isConnected = true
+    }
+  },
+  updated () {
+    if(this.$router.name == 'Connexion' || this.$router.name == 'Inscription') {
+      this.isConnectPage = true
+    } else {
+      this.isConnectPage = false
+    }
+  },
+  methods: {
+    handleConnect() {
+      if(this.isConnected) {
+        localStorage.removeItem('CurrentUser')
+      } else {
+        this.$router.push({ name : 'Connexion' })
+      }
+    }
   }
 };
 </script>

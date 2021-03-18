@@ -66,6 +66,7 @@
 </template>
 <script>
   export default {
+    name: 'PlanningPage',
     data: () => (
       {
       type: 'month',
