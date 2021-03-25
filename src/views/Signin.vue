@@ -10,7 +10,7 @@
       <v-icon dark class="mx-3">
         fas fa-info-circle
       </v-icon>
-    <span>Bonjour, {{userConnected}} !</span>
+    <span>Votre compte a été créé avec succès ! Vous pouvez maintenant vous connecter.</span>
     </v-snackbar>
     
       <v-row class="mb-6" no-gutters>
@@ -32,7 +32,7 @@
                         <v-row>
                             <v-col cols="12" sm="6">
                                 <v-checkbox class="ml-4" v-model="isAdmin" :label="isAdmin ? `Vous êtes Administrateur ?` : 'Vous n\'êtes pas administrateur' "></v-checkbox>
-                                <v-text-field v-show="isAdmin" placeholder="Code établissement"  filled ></v-text-field>
+                                <v-text-field v-show="isAdmin" placeholder="Code établissement"  v-model="codeAdmin" filled counter maxlength="4"></v-text-field>
                             </v-col>
                         </v-row>
                     </v-container>
@@ -42,7 +42,7 @@
                         </v-btn>
                         <v-spacer></v-spacer>
                         <v-btn color="primary" type="submit" :disabled="!formIsValid">
-                            Se connecter
+                            Créer un compte
                         </v-btn>
                     </v-card-actions>
                 </v-form>
@@ -70,7 +70,7 @@ export default {
             snackbar: false,
             userConnected: '',
             isAdmin: false,
-            codeAdmin: Number
+            codeAdmin: ''
         }
     },
     computed: {
@@ -92,21 +92,29 @@ export default {
         this.register()
         this.resetForm()
       },
-      checkUser () {
-          
-      },
       register() {
+        let payload = {};
         if(this.formIsValid) {
-            const payload = {
-                firstName: this.form.first,
-                lastName: this.form.last,
-                isAdmin: this.isAdmin
+            console.log('IsAdminUser ? ', this.isAdmin)
+            if(this.isAdmin) {
+                payload = {
+                    firstName: this.form.first,
+                    lastName: this.form.last,
+                    isAdmin: this.isAdmin,
+                    CodeAdmin: this.codeAdmin
+                }
+            } else {
+                payload = {
+                    firstName: this.form.first,
+                    lastName: this.form.last,
+                    isAdmin: this.isAdmin
+                }
             }
-            console.log('Payload before sending', payload)
-            Service.post('user/register', payload ).then( response => {
-                console.log('response', response)
-                localStorage.setItem('CurrentUser', JSON.stringify(response))
+            Service.post('user/register', payload ).then( () => {
                 this.snackbar = true
+                setTimeout( () => {
+                  this.$router.push({ name : 'Connexion'})
+                }, 2500)
             }).catch( error => {
                 console.error('error', error)
             })
