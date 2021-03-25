@@ -68,6 +68,7 @@ export default {
     handleConnect() {
       if(this.isConnected) {
         localStorage.removeItem('CurrentUser')
+        this.$router.push({ name : 'Connexion' })
       } else {
         this.$router.push({ name : 'Connexion' })
       }

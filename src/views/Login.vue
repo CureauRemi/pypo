@@ -19,7 +19,7 @@
                         <v-row>
                             <v-col cols="12" sm="6">
                                 <v-checkbox class="ml-4" v-model="isAdmin" :label="isAdmin ? `Vous êtes Administrateur ?` : 'Vous n\'êtes pas administrateur' "></v-checkbox>
-                                <v-text-field v-show="isAdmin" placeholder="Code établissement"  filled ></v-text-field>
+                                <v-text-field v-show="isAdmin" placeholder="Code établissement"  v-model="codeAdmin" filled counter maxlength="4"></v-text-field>
                             </v-col>
                         </v-row>
                     </v-container>
@@ -59,7 +59,7 @@ export default {
             snackbar: false,
             userConnected: '',
             isAdmin: false,
-            codeAdmin: Number,
+            codeAdmin: '',
             alert : {
                 type: '',
                 message: '',
@@ -76,7 +76,6 @@ export default {
       },
     },
     created () {
-        console.log('Router path',this.$router );
         if(localStorage.getItem('CurrentUser') != null) {
             this.$router.push({ name: 'Accueil'});
         }
@@ -92,21 +91,26 @@ export default {
         
         this.resetForm()
       },
-      checkUser () {
-          
-      },
-
       login() {
+        let payload = {};
         if(this.formIsValid) {
-            const payload = {
-                firstName: this.form.first,
-                lastName: this.form.last,
-                isAdmin: this.isAdmin
+            if(this.isAdmin) {
+                payload = {
+                    firstName: this.form.first,
+                    lastName: this.form.last,
+                    isAdmin: this.isAdmin,
+                    CodeAdmin: this.codeAdmin
+                }
+            } else {
+                payload = {
+                    firstName: this.form.first,
+                    lastName: this.form.last,
+                    isAdmin: this.isAdmin
+                }
             }
-            console.log('Payload before sending', payload)
             Service.post('user/login', payload ).then( response => {
-                console.log('response', response)
                 localStorage.setItem('CurrentUser', JSON.stringify(response.data))
+                this.$router.push({ name : 'TableauDeBordAdmin'})
             }).catch( error => {
                 console.error('error', error)
             })
