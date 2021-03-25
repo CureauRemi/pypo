@@ -1,25 +1,93 @@
 <template>
-
   <div class="about">
-     <v-btn label="Small" color="primary" @click="small = true" value="ajouter" />
-     <v-dialog v-model="small" >
+     
+     <v-dialog v-model="newEvent" width="500" >
       <v-card>
-        <v-card-section>
-          <div class="text-h6">Planning</div>
-        </v-card-section>
+        <v-card-title v-if="form.name.length == 0">Nouvel Evenement</v-card-title>
+        <v-card-title v-else-if="form.name.length != 0">{{form.name}}</v-card-title>
 
         <v-card-section class="q-pt-none">
           <v-form ref="form" @submit.prevent="submit">
                     <v-container fluid>
                         <v-row>
                             <v-col cols="12" sm="12">
-                                <v-text-field placeholder="Name" v-model="form.name"   filled ></v-text-field>
+                                <v-text-field placeholder="Name" v-model="form.name" counter maxlength="64"  filled ></v-text-field>
                             </v-col>
                             <v-col cols="12" sm="6">
-                                <v-text-field placeholder="First date" v-model="form.startDate"  filled ></v-text-field>
+                              <v-menu
+                                ref="menuStartDate"
+                                v-model="menuStartDate"
+                                :close-on-content-click="false"
+                                transition="scale-transition"
+                                offset-y
+                                max-width="290px"
+                                min-width="auto"
+                              >
+                                <template v-slot:activator="{ on, attrs }">
+                                  <v-text-field
+                                    v-model="form.startDate"
+                                    label="Date"
+                                    filled
+                                    hint="MM/DD/YYYY format"
+                                    persistent-hint
+                                    prepend-icon="fas fa-calendar-alt"
+                                    v-bind="attrs"
+                                    @blur="date = parseDate(form.startDate)"
+                                    v-on="on"
+                                  ></v-text-field>
+                                </template>
+                                <v-date-picker
+                                  v-model="date"
+                                  no-title
+                                  @input="menuStartDate = false"
+                                ></v-date-picker>
+                              </v-menu>
                             </v-col>
                             <v-col cols="12" sm="6">
-                                <v-text-field placeholder="End date" v-model="form.endDate"  filled ></v-text-field>
+                                <v-menu
+                                ref="menuEndDate"
+                                v-model="menuEndDate"
+                                :close-on-content-click="false"
+                                transition="scale-transition"
+                                offset-y
+                                max-width="290px"
+                                min-width="auto"
+                              >
+                                <template v-slot:activator="{ on, attrs }">
+                                  <v-text-field
+                                    v-model="form.endDate"
+                                    label="Date"
+                                    filled
+                                    hint="MM/DD/YYYY format"
+                                    persistent-hint
+                                    prepend-icon="fas fa-calendar-alt"
+                                    v-bind="attrs"
+                                    @blur="date = parseDate(form.endDate)"
+                                    v-on="on"
+                                  ></v-text-field>
+                                </template>
+                                 <v-date-picker
+                                  v-model="form.endDate"
+                                  no-title
+                                  scrollable
+                                >
+                                  <v-spacer></v-spacer>
+                                  <v-btn
+                                    text
+                                    color="primary"
+                                    @click="menuEndDate = false"
+                                  >
+                                    Cancel
+                                  </v-btn>
+                                  <v-btn
+                                    text
+                                    color="primary"
+                                    @click="$refs.menuEndDate.save(form.endDate)"
+                                  >
+                                    OK
+                                  </v-btn>
+                                </v-date-picker>
+                              </v-menu>
                             </v-col>
                             <v-col cols="12" sm="12">
                                 <v-text-field placeholder="description" v-model="form.description"  filled ></v-text-field>
@@ -27,11 +95,11 @@
                         </v-row>
                     </v-container>
                     <v-card-actions>
-                        <v-btn text @click="exitForm">
+                        <v-btn text @click="newEvent = false">
                             Annuler
                         </v-btn>
                         <v-spacer></v-spacer>
-                        <v-btn color="primary" type="submit" @click="addPlanning">
+                        <v-btn color="primary" type="submit" @click="addPlanning" :disabled="!formIsValid">
                            Valider
                         </v-btn>
                     </v-card-actions>
@@ -49,12 +117,18 @@
       height="54"
       class="d-flex"
     >
+    <v-btn @click="newEvent = true" class="ma-2 text-capitalize" color="primary" >
+      <v-icon left>
+        fas fa-plus-circle
+      </v-icon>
+      Nouvel Evenement
+    </v-btn>
       <v-btn
         icon
         class="ma-2"
         @click="$refs.calendar.prev()"
       >
-        <v-icon>mdi-chevron-left</v-icon>
+        <v-icon>fas fa-chevron-left</v-icon>
       </v-btn>
       <v-select
         v-model="type"
@@ -89,7 +163,7 @@
         class="ma-2"
         @click="$refs.calendar.next()"
       >
-        <v-icon>mdi-chevron-right</v-icon>
+        <v-icon>fas fa-chevron-right</v-icon>
       </v-btn>
     </v-sheet>
     <v-sheet height="600">
@@ -111,33 +185,47 @@
   import Service from '../services/service'
   export default {
     name: 'PlanningPage',
-    data: () => (
-      {
-      form:Object.assign({},
-      Object.freeze({
+    data () {
+      const form = Object.freeze({
             name: '',
             startDate: '',
             endDate: '',
             description: '',
             categorie: '',
-        }) ),
-      small: false,
-      type: 'month',
-      types: ['month', 'week', 'day', '4day'],
-      mode: 'stack',
-      modes: ['stack', 'column'],
-      weekday: [0, 1, 2, 3, 4, 5, 6],
-      weekdays: [
-        { text: 'Lun - Dim', value: [0, 1, 2, 3, 4, 5, 6] },
-        { text: 'Mon - Sun', value: [1, 2, 3, 4, 5, 6, 0] },
-        { text: 'Mon - Fri', value: [1, 2, 3, 4, 5] },
-        { text: 'Mon, Wed, Fri', value: [1, 3, 5] },
-      ],
-      value: '',
-      events: [],
-      colors: ['blue', 'indigo', 'deep-purple', 'cyan', 'green', 'orange', 'grey darken-1'],
-      names: ['Meeting', 'Holiday', 'PTO', 'Travel', 'Event', 'Birthday', 'Conference', 'Party'],
-    }),
+      })
+      return{
+        form:Object.assign({}, form ),
+        // FORMAT DE DATE PICKER
+        date: new Date().toISOString().substr(0, 10),
+        dateFormatted: this.formatDate(new Date().toISOString().substr(0, 10)),
+        newEvent: false,
+        type: 'month',
+        types: ['month', 'week', 'day', '4day'],
+        mode: 'stack',
+        modes: ['stack', 'column'],
+        weekday: [0, 1, 2, 3, 4, 5, 6],
+        weekdays: [
+          { text: 'Lun - Dim', value: [0, 1, 2, 3, 4, 5, 6] },
+          { text: 'Mon - Sun', value: [1, 2, 3, 4, 5, 6, 0] },
+          { text: 'Mon - Fri', value: [1, 2, 3, 4, 5] },
+          { text: 'Mon, Wed, Fri', value: [1, 3, 5] },
+        ],
+        value: '',
+        events: [],
+        colors: ['blue', 'indigo', 'deep-purple', 'cyan', 'green', 'orange', 'grey darken-1'],
+        names: ['Meeting', 'Holiday', 'PTO', 'Travel', 'Event', 'Birthday', 'Conference', 'Party'],
+      }
+    },
+    computed: {
+      formIsValid () {
+        return (
+          this.form.name &&
+          this.form.startDate &&
+          this.form.endDate &&
+          this.form.category
+        )
+      },
+    },
     methods: {
       getEvents () {
         const events = []
@@ -195,6 +283,18 @@
       },
       rnd (a, b) {
         return Math.floor((b - a + 1) * Math.random()) + a
+      },
+      formatDate (date) {
+        if (!date) return null
+
+        const [year, month, day] = date.split('-')
+        return `${month}/${day}/${year}`
+      },
+      parseDate (date) {
+        if (!date) return null
+
+        const [month, day, year] = date.split('/')
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
       },
     },
   
