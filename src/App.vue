@@ -6,11 +6,46 @@
       <router-link :to="{name: 'Accueil'}"><img :src="require('./assets/logo-pypo.png')" alt="Logo" class="logo"/></router-link>
       <h1 class="title" color="primary">{{ $route.name }}</h1>
       <v-spacer></v-spacer>
-      <v-btn v-show="!isConnectPage" class="mr-4" color="primary"  x-large fab elevation="1" @click="handleConnect()">
-        <!-- IF CONNECTED -->
-        <v-icon v-show="isConnected">fas fa-sign-out-alt</v-icon>
-        <v-icon v-show="!isConnected">fas fa-sign-in-alt</v-icon>
-      </v-btn>
+
+      <v-menu offset-y class="mr-4" v-if="isConnected && isAdmin">
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+            color="primary"
+            v-bind="attrs"
+            v-on="on"
+            class="text-capitalize"
+            elevation="0"
+          >
+            Administrateur
+          </v-btn>
+        </template>
+
+        <v-list>
+          <v-list-item
+            v-for="(item, index) in menuItems"
+            :key="index"
+            :to="{name: item.name}"
+            exact
+          >
+            <v-list-item-title>{{ item.name }}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+
+      <v-tooltip bottom v-show="!isConnectPage">
+      <template v-slot:activator="{ on, attrs }">
+         <v-btn  class="mr-4 ml-4" color="primary"  x-large fab elevation="0" @click="handleConnect()" v-bind="attrs" v-on="on" ele>
+          <!-- IF CONNECTED -->
+          <v-icon v-show="isConnected">fas fa-sign-out-alt</v-icon>
+          <v-icon v-show="!isConnected">fas fa-sign-in-alt</v-icon>
+        </v-btn>
+      </template>
+      <span v-show="isConnected"> Se Déconnecter</span>
+      <span v-show="!isConnected"> Se Connecter</span>
+    </v-tooltip>
+
+
+     
     </div>
     <!-- APP CONTAINER ROUTER -->
     <v-main class="pa-4">
@@ -50,6 +85,15 @@ export default {
     return {
       isConnected: false,
       isConnectPage: false,
+      isAdmin: false,
+      menuItems : [
+        {
+          name : 'Tableau de Bord'
+        },
+        {
+          name : 'Liste des Patients'
+        }
+      ]
     }
   },
   created() {
@@ -58,7 +102,13 @@ export default {
     }
   },
   updated () {
-    if(this.$router.name == 'Connexion' || this.$router.name == 'Inscription') {
+    if(this.isConnected) {
+      if(localStorage.getItem('CurrentUser')) {
+        this.isAdmin = JSON.parse(localStorage.getItem('CurrentUser')).isAdmin
+      }
+    }
+
+    if(this.$router.history.current.name == 'Connexion' || this.$router.history.current.name == 'Inscription') {
       this.isConnectPage = true
     } else {
       this.isConnectPage = false
@@ -66,11 +116,13 @@ export default {
   },
   methods: {
     handleConnect() {
+      // console.log('isConnected ? ', this.isConnected);
       if(this.isConnected) {
+        this.isConnected = !this.isConnected;
+        this.$router.push({ name : 'Connexion' })
         localStorage.removeItem('CurrentUser')
-        this.$router.push({ name : 'Connexion' })
       } else {
-        this.$router.push({ name : 'Connexion' })
+        this.$router.push({ name : 'Connexion' });
       }
     }
   }

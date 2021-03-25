@@ -110,7 +110,11 @@ export default {
             }
             Service.post('user/login', payload ).then( response => {
                 localStorage.setItem('CurrentUser', JSON.stringify(response.data))
-                this.$router.push({ name : 'TableauDeBordAdmin'})
+                if(response.data.isAdmin){
+                    this.$router.push({ name:  'Tableau de Bord'})
+                } else {
+                    this.$router.push({ name : 'Accueil' })
+                }
             }).catch( error => {
                 console.error('error', error)
             })

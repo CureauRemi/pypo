@@ -21,13 +21,13 @@ const routes = [
   },
   // ADMIN PAGES
   {
-    path: '/dashboard',name: 'TableauDeBordAdmin',  component: () => import('../views/Dashboard.vue')
+    path: '/dashboard',name: 'Tableau de Bord',  component: () => import('../views/Dashboard.vue')
   },
   {
-    path: '/patients',name: 'ListingPatients',  component: () => import('../views/ListingPatients.vue')
+    path: '/patients',name: 'Liste des Patients',  component: () => import('../views/ListingPatients.vue')
   },
   {
-    path: '/patients/:id',name: 'DetailPatient',  component: () => import('../views/DetailPatient.vue')
+    path: '/patients/:id',name: 'Détail du patient',  component: () => import('../views/DetailPatient.vue')
   }
 ]
 
