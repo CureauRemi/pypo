@@ -1,6 +1,49 @@
 <template>
+
   <div class="about">
-    <h1>This is an planning page</h1>
+     <v-btn label="Small" color="primary" @click="small = true" value="ajouter" />
+     <v-dialog v-model="small" >
+      <v-card>
+        <v-card-section>
+          <div class="text-h6">Planning</div>
+        </v-card-section>
+
+        <v-card-section class="q-pt-none">
+          <v-form ref="form" @submit.prevent="submit">
+                    <v-container fluid>
+                        <v-row>
+                            <v-col cols="12" sm="12">
+                                <v-text-field placeholder="Name" v-model="form.name"   filled ></v-text-field>
+                            </v-col>
+                            <v-col cols="12" sm="6">
+                                <v-text-field placeholder="First date" v-model="form.startDate"  filled ></v-text-field>
+                            </v-col>
+                            <v-col cols="12" sm="6">
+                                <v-text-field placeholder="End date" v-model="form.endDate"  filled ></v-text-field>
+                            </v-col>
+                            <v-col cols="12" sm="12">
+                                <v-text-field placeholder="description" v-model="form.description"  filled ></v-text-field>
+                            </v-col>
+                        </v-row>
+                    </v-container>
+                    <v-card-actions>
+                        <v-btn text @click="exitForm">
+                            Annuler
+                        </v-btn>
+                        <v-spacer></v-spacer>
+                        <v-btn color="primary" type="submit" @click="addPlanning">
+                           Valider
+                        </v-btn>
+                    </v-card-actions>
+                </v-form>
+        </v-card-section>
+
+        <v-card-actions align="right" class="bg-white text-teal">
+          
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <v-sheet
       tile
       height="54"
@@ -65,10 +108,20 @@
   </div>
 </template>
 <script>
+  import Service from '../services/service'
   export default {
     name: 'PlanningPage',
     data: () => (
       {
+      form:Object.assign({},
+      Object.freeze({
+            name: '',
+            startDate: '',
+            endDate: '',
+            description: '',
+            categorie: '',
+        }) ),
+      small: false,
       type: 'month',
       types: ['month', 'week', 'day', '4day'],
       mode: 'stack',
@@ -86,31 +139,56 @@
       names: ['Meeting', 'Holiday', 'PTO', 'Travel', 'Event', 'Birthday', 'Conference', 'Party'],
     }),
     methods: {
-      getEvents ({ start, end }) {
+      getEvents () {
         const events = []
-
-        const min = new Date(`${start.date}T00:00:00`)
-        const max = new Date(`${end.date}T23:59:59`)
-        const days = (max.getTime() - min.getTime()) / 86400000
-        const eventCount = this.rnd(days, days + 20)
-
-        for (let i = 0; i < eventCount; i++) {
-          const allDay = this.rnd(0, 3) === 0
-          const firstTimestamp = this.rnd(min.getTime(), max.getTime())
-          const first = new Date(firstTimestamp - (firstTimestamp % 900000))
-          const secondTimestamp = this.rnd(2, allDay ? 288 : 8) * 900000
-          const second = new Date(first.getTime() + secondTimestamp)
-
-          events.push({
-            name: this.names[this.rnd(0, this.names.length - 1)],
-            start: first,
-            end: second,
-            color: this.colors[this.rnd(0, this.colors.length - 1)],
-            timed: !allDay,
-          })
-        }
+        const planning = Service.get('/planning/user/1')
+        
+        
+        
+        planning.then( response => {
+            console.log('response', response.data)
+            
+            for(var value of response.data){
+                const startDate = value.startDate.replace('T',' ').replace('Z','').replace('.000','')
+                const endDate = value.endDate.replace('T',' ').replace('Z','').replace('.000','')
+                console.log('value',value)
+                console.log('start',startDate)
+                console.log('end',endDate)
+                events.push({
+                  name: value.name,
+                  start: startDate,
+                  end: endDate,
+                  description: value.description,
+                  color: value.category.colorCode,
+                    timed: true,
+              })
+            }
+         })
+        
+        
 
         this.events = events
+      },
+      addPlanning(){
+        const payload = {
+                name: this.form.name,
+                startDate: this.form.startDate,
+                endDate: this.form.endDate,
+                description: this.form.description,
+                categorie: 1,
+                owner: 1
+            }
+          Service.post('planning/user', payload ).then( response => {
+                console.log('response', response)
+                localStorage.setItem('CurrentUser', JSON.stringify(response))
+                this.snackbar = true
+                this.getEvents()
+            }).catch( error => {
+                console.error('error', error)
+            })
+      },
+      exitForm (){
+        this.small=false;
       },
       getEventColor (event) {
         return event.color
