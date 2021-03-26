@@ -12,9 +12,8 @@
                         <v-row>
                             <v-col cols="12" sm="12">
                                 <v-text-field placeholder="Name" v-model="form.name" counter maxlength="64"  filled ></v-text-field>
-                            </v-col>
-                            <v-col cols="12" sm="6">
-                              <v-menu
+                            </v-col><v-col cols="12" sm="6">
+                                <v-menu
                                 ref="menuStartDate"
                                 v-model="menuStartDate"
                                 :close-on-content-click="false"
@@ -36,11 +35,27 @@
                                     v-on="on"
                                   ></v-text-field>
                                 </template>
-                                <v-date-picker
-                                  v-model="date"
+                                 <v-date-picker
+                                  v-model="form.startDate"
                                   no-title
-                                  @input="menuStartDate = false"
-                                ></v-date-picker>
+                                  scrollable
+                                >
+                                  <v-spacer></v-spacer>
+                                  <v-btn
+                                    text
+                                    color="primary"
+                                    @click="menuStartDate = false"
+                                  >
+                                    Cancel
+                                  </v-btn>
+                                  <v-btn
+                                    text
+                                    color="primary"
+                                    @click="$refs.menuStartDate.save(form.startDate)"
+                                  >
+                                    OK
+                                  </v-btn>
+                                </v-date-picker>
                               </v-menu>
                             </v-col>
                             <v-col cols="12" sm="6">
@@ -191,11 +206,14 @@
             startDate: '',
             endDate: '',
             description: '',
-            categorie: '',
+            category: '',
       })
       return{
+        categoryOb:[],
         form:Object.assign({}, form ),
         // FORMAT DE DATE PICKER
+        menuStartDate:'',
+        menuEndDate:'',
         date: new Date().toISOString().substr(0, 10),
         dateFormatted: this.formatDate(new Date().toISOString().substr(0, 10)),
         newEvent: false,
@@ -211,6 +229,7 @@
           { text: 'Mon, Wed, Fri', value: [1, 3, 5] },
         ],
         value: '',
+        CurrentUser: 1,
         events: [],
         colors: ['blue', 'indigo', 'deep-purple', 'cyan', 'green', 'orange', 'grey darken-1'],
         names: ['Meeting', 'Holiday', 'PTO', 'Travel', 'Event', 'Birthday', 'Conference', 'Party'],
@@ -222,14 +241,21 @@
           this.form.name &&
           this.form.startDate &&
           this.form.endDate &&
-          this.form.category
+          this.form.description
         )
       },
     },
     methods: {
       getEvents () {
+      const payload = {
+                name: 'test',
+                colorCode: 'red',
+            }
+        Service.post('/planning/category',payload)
+        this.categoryOb =Service.get('/planning/category')
+        console.log('category',this.categoryOb)
         const events = []
-        const planning = Service.get('/planning/user/1')
+        const planning = Service.get('/planning/user/'+this.CurrentUser)
         
         
         
@@ -247,7 +273,7 @@
                   start: startDate,
                   end: endDate,
                   description: value.description,
-                  color: value.category.colorCode,
+                  color: 'red',
                     timed: true,
               })
             }
@@ -258,13 +284,14 @@
         this.events = events
       },
       addPlanning(){
+        console.log('idUser',this.CurrentUser);
         const payload = {
                 name: this.form.name,
                 startDate: this.form.startDate,
                 endDate: this.form.endDate,
                 description: this.form.description,
                 categorie: 1,
-                owner: 1
+                owner: this.CurrentUser
             }
           Service.post('planning/user', payload ).then( response => {
                 console.log('response', response)
